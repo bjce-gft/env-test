@@ -1,0 +1,39 @@
+#the below assumes that dev branch is automatically being deployed to AWS Dev. Uncomment once load tests are finished
+name: Dev CI/CD
+
+on:
+  push:
+    branches: [ "dev" ]
+  pull_request:
+    branches: [ "dev" ]
+  workflow_dispatch:
+
+jobs:
+  build-and-deploy-to-aws-dev:
+    name: Build and Deploy to AWS Dev
+    runs-on: ubuntu-22.04
+    environment:
+      name: AWSDev
+      url: ${{ vars.URL }}
+
+    steps:
+    #integration
+    - name: Checkout
+      uses: actions/checkout@v3
+      with:
+        fetch-depth:
+    
+    - name: Set environment variable
+      id: setEnv
+      run: |
+        echo "${{ vars.ENV_SPECIFIC }}"
+        echo "${{ vars.REPO_SPECIFIC }}"
+
+    - name: Build
+      run: |
+        echo "Building"
+    
+    #deployment
+    - name: Deploying
+      run: |
+        echo "Deploying"
