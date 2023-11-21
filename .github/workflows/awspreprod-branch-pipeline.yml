@@ -59,6 +59,7 @@ jobs:
         echo "GIT_TAG=toggens.marketplace-preproduction-$VERSION_MAJOR.$VERSION_MINOR.$VERSION_PATCH" >> $GITHUB_ENV
 
     - name: Release
+      if: ${{ github.event_name == 'push' }}
       uses: softprops/action-gh-release@v1
       with:
         tag_name: '${{ env.GIT_TAG }}'
