@@ -56,10 +56,12 @@ jobs:
         prerelease: true
 
     - name: Delivering
+      if: ${{ github.event_name == 'push' }}
       run: |
         echo "Delivering"
 
     #deployment
     - name: Deploying
+      if: ${{ github.event_name == 'push' }}
       run: |
         echo "Deploying"
