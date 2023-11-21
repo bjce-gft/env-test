@@ -1,0 +1,65 @@
+name: PreProduction CI/CD
+
+on:
+  push:
+    branches: [ "main" ]
+  pull_request:
+    branches: [ "main" ]
+  workflow_dispatch:
+
+jobs:
+  build-and-deploy-to-aws-preprod:
+    name: Build and Deploy to AWS PreProd
+    runs-on: ubuntu-22.04
+    environment:
+      name: AWSPreProduction
+      url: ${{ vars.URL }}
+
+    steps:
+    #integration
+    - name: Checkout
+      uses: actions/checkout@v3
+      with:
+        fetch-depth:
+    
+    - name: Set environment variable
+      id: setEnv
+      run: |
+        echo "${{ vars.ENV_SPECIFIC }}"
+        echo "${{ vars.REPO_SPECIFIC }}"
+
+    - name: Build
+      run: |
+        echo "Building"
+
+    #delivery
+    - name: Get version
+      if: ${{ github.event_name == 'push' }}
+      id: getVersion
+      run: |
+        VERSION_MAJOR=$(cat package.json | jq '.version' | jq 'split(".")[0]' -r)
+        VERSION_MINOR=$(cat package.json | jq '.version' | jq 'split(".")[1]' -r) 
+        VERSION_PATCH=${GITHUB_SHA::7}
+
+        echo "GIT_TAG=toggens.marketplace-preproduction-$VERSION_MAJOR.$VERSION_MINOR.$VERSION_PATCH" >> $GITHUB_ENV
+
+    - name: Create Release
+      if: ${{ github.event_name == 'push' }}
+      id: create_release
+      uses: actions/create-release@v1
+      env:
+        GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+      with:
+        tag_name: '${{ env.GIT_TAG }}'
+        release_name: Release '${{ env.GIT_TAG }}'
+        draft: false
+        prerelease: true
+
+    - name: Delivering
+      run: |
+        echo "Delivering"
+
+    #deployment
+    - name: Deploying
+      run: |
+        echo "Deploying"

@@ -1,0 +1,75 @@
+name: Production CI/CD
+
+on:
+  workflow_dispatch:
+
+jobs:
+  build-and-deploy-to-aws-prod:
+    if: ${{ github.ref == 'refs/heads/main' }}
+    name: Build and Deploy to AWS Prod
+    runs-on: ubuntu-22.04
+    environment:
+      name: AWSProduction
+      url: ${{ vars.URL }}
+
+    steps:
+    #integration
+    - name: Checkout
+      uses: actions/checkout@v3
+      with:
+        fetch-depth:
+    
+    - name: Set environment variable
+      id: setEnv
+      run: |
+        echo "${{ vars.ENV_SPECIFIC }}"
+        echo "${{ vars.REPO_SPECIFIC }}"
+
+    - name: Build
+      run: |
+        echo "Building"
+    
+    #delivery
+    - name: Get version
+      id: getVersion
+      run: |
+        VERSION_MAJOR=$(cat package.json | jq '.version' | jq 'split(".")[0]' -r)
+        VERSION_MINOR=$(cat package.json | jq '.version' | jq 'split(".")[1]' -r) 
+        VERSION_PATCH=${GITHUB_SHA::7}
+
+        echo "GIT_TAG=toggens.marketplace-production-$VERSION_MAJOR.$VERSION_MINOR.$VERSION_PATCH" >> $GITHUB_ENV 
+
+    - name: Zip the package
+      run: |
+        zip -r package.zip package.json
+
+    - name: Create Release
+      id: create_release
+      uses: actions/create-release@v1
+      env:
+        GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+      with:
+        tag_name: '${{ env.GIT_TAG }}'
+        release_name: Release '${{ env.GIT_TAG }}'
+        draft: false
+        prerelease: false
+
+    - name: Upload Release Asset
+      id: upload-release-asset 
+      uses: actions/upload-release-asset@v1
+      env:
+        GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+      with:
+        upload_url: ${{ steps.create_release.outputs.upload_url }} 
+        asset_path: ./package.zip
+        asset_name: package.zip
+        asset_content_type: application/zip
+    
+    - name: Delivering
+      run: |
+        echo "Delivering"
+    
+    #deployment
+    - name: Deploying
+      run: |
+        echo "Deploying"
