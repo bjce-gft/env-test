@@ -3,6 +3,21 @@ name: Production CI/CD
 on:
   workflow_dispatch:
 
+permissions:
+  actions: write
+  checks: write
+  contents: write
+  deployments: write
+  id-token: none
+  issues: read
+  discussions: none
+  packages: read
+  pages: none
+  pull-requests: read
+  repository-projects: write
+  security-events: read
+  statuses: read
+
 jobs:
   build-and-deploy-to-aws-prod:
     if: ${{ github.ref == 'refs/heads/main' }}
