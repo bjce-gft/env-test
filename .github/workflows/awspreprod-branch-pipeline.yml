@@ -58,16 +58,10 @@ jobs:
 
         echo "GIT_TAG=toggens.marketplace-preproduction-$VERSION_MAJOR.$VERSION_MINOR.$VERSION_PATCH" >> $GITHUB_ENV
 
-    - name: Create Release
-      if: ${{ github.event_name == 'push' }}
-      id: create_release
-      uses: actions/create-release@v1
-      env:
-        GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+    - name: Release
+      uses: softprops/action-gh-release@v1
       with:
         tag_name: '${{ env.GIT_TAG }}'
-        release_name: Release '${{ env.GIT_TAG }}'
-        draft: false
         prerelease: true
 
     - name: Delivering
